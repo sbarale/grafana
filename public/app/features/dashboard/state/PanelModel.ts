@@ -342,7 +342,6 @@ export class PanelModel {
     this.type = pluginId;
     this.plugin = newPlugin;
     this.applyPluginOptionDefaults(newPlugin);
-    this.updateQueryRunnerFieldOverrides();
 
     if (newPlugin.onPanelMigration) {
       this.pluginVersion = getPluginVersion(newPlugin);
