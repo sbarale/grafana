@@ -55,7 +55,7 @@ export function panelEditorCleanUp(): ThunkResult<void> {
       // But do this after the panel edit editor exit process has completed
       setTimeout(() => {
         sourcePanel.getQueryRunner().setFieldOverrides({
-          fieldOptions: { ...panel.options.fieldOptions },
+          fieldOptions: { ...panel.fieldConfig },
           replaceVariables: sourcePanel.replaceVariables,
           custom: sourcePanel.plugin.customFieldConfigs,
           theme: config.theme,
