@@ -9,12 +9,14 @@ import { MetricDescriptor } from '../types';
 
 export interface Props {
   onChange: (metricDescriptor: MetricDescriptor) => void;
+  onServiceChange?: (service: string) => void;
   templateSrv: TemplateSrv;
   templateVariableOptions: Array<SelectableValue<string>>;
   datasource: StackdriverDatasource;
   projectName: string;
   metricType: string;
-  children?: (renderProps: any) => JSX.Element;
+  service?: string;
+  children?: (props: { metricDescriptor: MetricDescriptor; service: string }) => JSX.Element;
 }
 
 interface State {
@@ -46,9 +48,14 @@ export function Metrics(props: Props) {
       const metricDescriptors = await props.datasource.getMetricTypes(props.projectName);
       const services = getServicesList(metricDescriptors);
       const metrics = getMetricsList(metricDescriptors);
-      const service = metrics.length > 0 ? metrics[0].service : '';
-      const metricDescriptor = getSelectedMetricDescriptor(metricDescriptors, props.metricType);
-      setState({ ...state, metricDescriptors, services, metrics, service: service, metricDescriptor });
+      let service = metrics.length > 0 ? metrics[0].service : '';
+      let metricDescriptor = {} as MetricDescriptor;
+      if (props.service === 'slo') {
+        service = 'slo';
+      } else {
+        metricDescriptor = getSelectedMetricDescriptor(metricDescriptors, props.metricType);
+      }
+      setState({ ...state, metricDescriptors, services, metrics, service, metricDescriptor });
     }
   };
 
@@ -94,6 +101,7 @@ export function Metrics(props: Props) {
     } else {
       setState({ ...state, service, metrics });
     }
+    props.onServiceChange && props.onServiceChange(service);
   };
 
   const onMetricTypeChange = ({ value }: any, extra: any = {}) => {
@@ -103,10 +111,15 @@ export function Metrics(props: Props) {
   };
 
   const getServicesList = (metricDescriptors: MetricDescriptor[]) => {
-    const services = metricDescriptors.map(m => ({
-      value: m.service,
-      label: _.startCase(m.serviceShortName),
-    }));
+    const services = metricDescriptors
+      .map(m => ({
+        value: m.service,
+        label: _.startCase(m.serviceShortName),
+      }))
+      .concat({
+        value: 'slo',
+        label: 'Service Level Objectives (SLO)',
+      });
 
     return services.length > 0 ? _.uniqBy(services, s => s.value) : [];
   };
@@ -117,7 +130,7 @@ export function Metrics(props: Props) {
         <span className="gf-form-label width-9 query-keyword">Service</span>
         <Segment
           onChange={onServiceChange}
-          value={[...services, ...templateVariableOptions].find(s => s.value === service)}
+          value={[...services, ...templateVariableOptions].find(s => s.value === service || s.value === props.service)}
           options={[
             {
               label: 'Template Variables',
@@ -131,27 +144,28 @@ export function Metrics(props: Props) {
           <div className="gf-form-label gf-form-label--grow" />
         </div>
       </div>
-      <div className="gf-form-inline">
-        <span className="gf-form-label width-9 query-keyword">Metric</span>
-
-        <Segment
-          className="query-part"
-          onChange={onMetricTypeChange}
-          value={[...metrics, ...templateVariableOptions].find(s => s.value === metricType)}
-          options={[
-            {
-              label: 'Template Variables',
-              options: templateVariableOptions,
-            },
-            ...metrics,
-          ]}
-          placeholder="Select Metric"
-        ></Segment>
-        <div className="gf-form gf-form--grow">
-          <div className="gf-form-label gf-form-label--grow" />
+      {service !== 'slo' && (
+        <div className="gf-form-inline">
+          <span className="gf-form-label width-9 query-keyword">Metric</span>
+          <Segment
+            className="query-part"
+            onChange={onMetricTypeChange}
+            value={[...metrics, ...templateVariableOptions].find(s => s.value === metricType)}
+            options={[
+              {
+                label: 'Template Variables',
+                options: templateVariableOptions,
+              },
+              ...metrics,
+            ]}
+            placeholder="Select Metric"
+          ></Segment>
+          <div className="gf-form gf-form--grow">
+            <div className="gf-form-label gf-form-label--grow" />
+          </div>
         </div>
-      </div>
-      {props.children(state.metricDescriptor)}
+      )}
+      {props.children({ metricDescriptor: state.metricDescriptor, service })}
     </>
   );
 }

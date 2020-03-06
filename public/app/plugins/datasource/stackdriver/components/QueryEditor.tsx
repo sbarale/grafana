@@ -2,7 +2,18 @@ import React from 'react';
 
 import { TemplateSrv } from 'app/features/templating/template_srv';
 
-import { Project, Aggregations, Metrics, Filters, GroupBys, Alignments, AlignmentPeriods, AliasBy, Help } from './';
+import {
+  Project,
+  Aggregations,
+  Metrics,
+  SLOFilter,
+  LabelFilter,
+  GroupBys,
+  Alignments,
+  AlignmentPeriods,
+  AliasBy,
+  Help,
+} from './';
 import { StackdriverQuery, MetricDescriptor } from '../types';
 import { getAlignmentPickerData, toOption } from '../functions';
 import StackdriverDatasource from '../datasource';
@@ -170,6 +181,7 @@ export class QueryEditor extends React.Component<Props, State> {
 
   render() {
     const {
+      service,
       groupBys = [],
       filters = [],
       usedAlignmentPeriod,
@@ -186,6 +198,7 @@ export class QueryEditor extends React.Component<Props, State> {
       variableOptionGroup,
       variableOptions,
       refId,
+      slo,
     } = this.state;
     const { datasource, templateSrv } = this.props;
 
@@ -202,20 +215,32 @@ export class QueryEditor extends React.Component<Props, State> {
         />
         <Metrics
           templateSrv={templateSrv}
+          onServiceChange={(value: string) => this.onPropertyChange('service', value)}
           projectName={projectName}
+          service={service}
           metricType={metricType}
           templateVariableOptions={variableOptions}
           datasource={datasource}
           onChange={this.onMetricTypeChange}
         >
-          {metric => (
+          {({ metricDescriptor, service }) => (
             <>
-              <Filters
-                labels={labels}
-                filters={filters}
-                onChange={value => this.onPropertyChange('filters', value)}
-                variableOptionGroup={variableOptionGroup}
-              />
+              <div className="gf-form-inline">
+                <label className="gf-form-label query-keyword width-9">Filter</label>
+                {service === 'slo' ? (
+                  <SLOFilter value={slo} onChange={(value: string) => this.onPropertyChange('slo', value)} />
+                ) : (
+                  <LabelFilter
+                    labels={labels}
+                    filters={filters}
+                    onChange={value => this.onPropertyChange('filters', value)}
+                    variableOptionGroup={variableOptionGroup}
+                  />
+                )}
+                <div className="gf-form gf-form--grow">
+                  <label className="gf-form-label gf-form-label--grow"></label>
+                </div>
+              </div>
               <GroupBys
                 groupBys={Object.keys(labels)}
                 values={groupBys}
@@ -223,7 +248,7 @@ export class QueryEditor extends React.Component<Props, State> {
                 variableOptionGroup={variableOptionGroup}
               />
               <Aggregations
-                metricDescriptor={metric}
+                metricDescriptor={metricDescriptor}
                 templateVariableOptions={variableOptions}
                 crossSeriesReducer={crossSeriesReducer}
                 groupBys={groupBys}
