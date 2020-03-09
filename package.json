@@ -1,10 +1,10 @@
 {
-  "author": "Grafana Labs",
+  "author": "Sebastian Barale",
   "license": "Apache-2.0",
   "private": true,
   "name": "grafana",
   "version": "6.7.0-pre",
-  "repository": "github:grafana/grafana",
+  "repository": "github:sbarale/grafana",
   "devDependencies": {
     "@babel/core": "7.8.4",
     "@babel/plugin-proposal-nullish-coalescing-operator": "7.8.3",
