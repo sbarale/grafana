@@ -39,7 +39,7 @@ const (
 	DEV      = "development"
 	PROD     = "production"
 	TEST     = "test"
-	APP_NAME = "Grafana"
+	APP_NAME = "Dashfloow"
 )
 
 var (
