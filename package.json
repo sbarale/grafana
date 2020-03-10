@@ -293,6 +293,6 @@
     "puppeteer": "node_modules/puppeteer-core"
   },
   "engines": {
-    "node": "13.6.0"
+    "node": "12.16.1"
   }
 }
